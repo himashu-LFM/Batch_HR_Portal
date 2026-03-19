@@ -10,6 +10,11 @@ export type AppConfig = {
    * Do not disable in production unless you understand the risk.
    */
   DATABASE_SSL_REJECT_UNAUTHORIZED: boolean;
+  /**
+   * Force Postgres TLS on/off. When unset, TLS is used for non-localhost hosts (RDS/Lambda).
+   * Set false for local Postgres without SSL.
+   */
+  DATABASE_USE_SSL: boolean | undefined;
   AWS_REGION: string;
   APP_TIMEZONE: string;
   SYSTEM_USER_ID: string;
@@ -68,6 +73,15 @@ function parseSslRejectUnauthorized(raw: string | undefined): boolean {
   return true;
 }
 
+/** unset = infer from host; true/false = override */
+function parseDatabaseUseSsl(raw: string | undefined): boolean | undefined {
+  if (raw === undefined || raw === "") return undefined;
+  const v = raw.toLowerCase();
+  if (v === "false" || v === "0" || v === "no") return false;
+  if (v === "true" || v === "1" || v === "yes") return true;
+  return undefined;
+}
+
 /**
  * Loads configuration from process.env. Call after dotenv in local runs.
  */
@@ -80,6 +94,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     NODE_ENV: env.NODE_ENV ?? "development",
     DATABASE_URL: env.DATABASE_URL ?? "",
     DATABASE_SSL_REJECT_UNAUTHORIZED: parseSslRejectUnauthorized(env.DATABASE_SSL_REJECT_UNAUTHORIZED),
+    DATABASE_USE_SSL: parseDatabaseUseSsl(env.DATABASE_USE_SSL),
     AWS_REGION: env.AWS_REGION ?? env.AWS_DEFAULT_REGION ?? "ap-south-1",
     APP_TIMEZONE: env.APP_TIMEZONE ?? "Asia/Kolkata",
     SYSTEM_USER_ID: env.SYSTEM_USER_ID ?? "",

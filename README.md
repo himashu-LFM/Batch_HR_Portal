@@ -21,7 +21,8 @@ No REST API or UI — batch only.
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `DATABASE_URL` | Yes (prod) | PostgreSQL URL for `pg`. |
-| `DATABASE_SSL_REJECT_UNAUTHORIZED` | No | Default verify TLS. Set `false` locally if Postgres uses a self-signed / private CA cert (see “Local TLS” below). |
+| `DATABASE_SSL_REJECT_UNAUTHORIZED` | No | Default verify TLS. Set `false` if Postgres uses a self-signed / private CA cert. |
+| `DATABASE_USE_SSL` | No | `true` / `false` to force TLS. If unset, TLS is **on** for non-localhost URLs (Lambda→RDS). |
 | `AWS_REGION` | Yes | Region for SES (and Lambda). |
 | `APP_TIMEZONE` | No | Default `Asia/Kolkata`. Defines “today” and month boundaries. |
 | `SYSTEM_USER_ID` | Yes (accrual) | Written to `leave_adjustments."createdById"`. |
@@ -90,15 +91,22 @@ Implemented in **`src/services/leaveYearService.ts`** (`getCurrentLeaveYearId`).
 - **`date_of_joining`**: `date`. Anniversaries require **≥ 1** completed year (hire day itself is skipped).
 - One **PAID** balance row per employee per leave year.
 
+## Postgres TLS (Lambda / RDS)
+
+**“no pg_hba.conf entry … no encryption”** from Lambda means the DB **requires SSL** but the client connected **without** TLS. The pool now **enables TLS automatically** for any host that is not `localhost` / `127.0.0.1` (typical **Lambda → RDS**).
+
+- **`DATABASE_SSL_REJECT_UNAUTHORIZED=false`** — only if the server cert is not verifiable (self-signed / private CA). RDS public endpoints usually work with the default **`true`**.
+- **`DATABASE_USE_SSL=false`** — force plaintext (e.g. local Postgres without SSL). **Do not use** for RDS from Lambda.
+
 ## Local TLS (Postgres “self-signed certificate in certificate chain”)
 
-If `npm run local:run` logs `celebrations_job_failed` / `self-signed certificate in certificate chain`, the failure is **the DB TLS handshake**, not SES yet. Add to `.env`:
+If `npm run local:run` logs `self-signed certificate in certificate chain`, add to `.env`:
 
 ```env
 DATABASE_SSL_REJECT_UNAUTHORIZED=false
 ```
 
-Use only for **local/dev** (or supply your org’s CA via Node/pg `ssl.ca` later). In production, prefer proper CA trust.
+Use only for **local/dev** when needed. For local Postgres on `localhost` without SSL, you can set `DATABASE_USE_SSL=false` (inference already skips TLS for localhost).
 
 ## Local setup
 

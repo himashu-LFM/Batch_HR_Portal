@@ -17,7 +17,7 @@ provider:
   environment:
     NODE_ENV: production
     DATABASE_URL: ${env:DATABASE_URL, ''}
-    AWS_REGION: ${aws:region}
+    # AWS_REGION is reserved — Lambda sets it automatically; do not declare it here.
     APP_TIMEZONE: ${env:APP_TIMEZONE, 'Asia/Kolkata'}
     SYSTEM_USER_ID: ${env:SYSTEM_USER_ID, ''}
     SES_FROM_EMAIL: ${env:SES_FROM_EMAIL, ''}
@@ -39,6 +39,8 @@ provider:
     LOG_LEVEL: ${env:LOG_LEVEL, 'info'}
     # Omit or set true in Lambda; use false only if DB TLS needs it (prefer RDS CA in prod)
     DATABASE_SSL_REJECT_UNAUTHORIZED: ${env:DATABASE_SSL_REJECT_UNAUTHORIZED, 'true'}
+    # Leave empty: non-localhost URLs use TLS (required for most RDS). Set false only for special local DBs.
+    DATABASE_USE_SSL: ${env:DATABASE_USE_SSL, ''}
   iam:
     role:
       statements:
