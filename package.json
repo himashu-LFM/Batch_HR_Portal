@@ -1,26 +1,37 @@
 {
-  "name": "people-lens-combined-batch-lambda",
+  "name": "batch-hr-portal-lambda",
   "version": "1.0.0",
   "private": true,
-  "description": "Single AWS Lambda: monthly paid leave credit + daily birthday/anniversary emails",
+  "description": "Serverless daily batch: monthly PAID leave accrual + birthday/anniversary notifications (SES)",
   "type": "module",
   "main": "dist/handler.js",
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "zip": "powershell -NoProfile -Command \"if (Test-Path dist.zip) { Remove-Item dist.zip -Force }; Compress-Archive -Path dist\\*,node_modules\\* -DestinationPath dist.zip\"",
-    "run:local": "powershell -NoProfile -Command \"$env:RUN_LOCAL='1'; node dist/handler.js\""
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "sls:deploy": "serverless deploy",
+    "sls:invoke": "serverless invoke -f dailyBatch --log",
+    "local:run": "node --import tsx src/localRun.ts"
   },
   "dependencies": {
-    "@aws-sdk/client-sesv2": "^3.967.0",
+    "@aws-sdk/client-ses": "^3.967.0",
+    "luxon": "^3.5.0",
     "pg": "^8.16.3"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.152",
+    "@types/luxon": "^3.7.1",
     "@types/node": "^20.14.0",
     "@types/pg": "^8.15.5",
     "dotenv": "^16.4.5",
-    "typescript": "^5.5.0"
+    "serverless": "^3.40.0",
+    "serverless-esbuild": "^1.54.6",
+    "tsx": "^4.19.2",
+    "typescript": "^5.5.0",
+    "vitest": "^2.1.6"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }
-

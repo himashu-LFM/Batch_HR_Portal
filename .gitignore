@@ -1,6 +1,9 @@
 node_modules/
 dist/
-dist.zip
 .env
 .env.local
-
+.env.*.local
+.serverless/
+*.log
+.DS_Store
+coverage/
